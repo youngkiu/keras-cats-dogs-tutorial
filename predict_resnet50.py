@@ -4,16 +4,16 @@ This script goes along my blog post:
 """
 
 
+import argparse
+import glob
 import os
 import sys
-import glob
-import argparse
 
 import numpy as np
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras.models import load_model
-from tensorflow.python.keras.applications.resnet50 import preprocess_input
-from tensorflow.python.keras.preprocessing import image
+from keras import backend as K
+from keras.applications.resnet50 import preprocess_input
+from keras.models import load_model
+from keras.preprocessing import image
 
 
 def parse_args():
@@ -51,14 +51,15 @@ if __name__ == '__main__':
 
     # loop through all files and make predictions
     for f in files:
-        img = image.load_img(f, target_size=(224,224))
+        img = image.load_img(f, target_size=(224, 224))
         if img is None:
             continue
         x = image.img_to_array(img)
         x = preprocess_input(x)
         x = np.expand_dims(x, axis=0)
         pred = net.predict(x)[0]
-        top_inds = pred.argsort()[::-1][:5]
-        print(f)
-        for i in top_inds:
-            print('    {:.3f}  {}'.format(pred[i], cls_list[i]))
+        pred_prob = pred[0]
+        pred_cls = cls_list[int(round(pred_prob))]
+        if os.path.basename(f)[:3] != pred_cls[:3]:
+            print(f)
+            print('    {:.3f}  {}'.format(pred_prob, pred_cls))
